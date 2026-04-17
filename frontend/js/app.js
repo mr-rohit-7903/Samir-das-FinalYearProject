@@ -87,6 +87,14 @@ function bindFormSubmit() {
       return;
     }
 
+    const formData = {
+      name,
+      location: state.location,
+      decor: state.decor,
+      food: state.food,
+      extras: [...state.extras],
+    };
+
     // Save to Backend first for real ID
     const apiRes = await postEventToAPI(formData);
 
