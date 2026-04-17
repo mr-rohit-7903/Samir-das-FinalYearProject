@@ -6,17 +6,16 @@
 /* ── Selection state ─────────────────────────────────────── */
 const state = {
   location: null,
-  decor:    null,
-  food:     null,
-  extras:   new Set(),
+  decor: null,
+  food: null,
+  extras: new Set(),
 };
 
 /* ── Boot ────────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   buildOptionGrids();
   refreshCostBar(state);
-  refreshEventsList();
-  updateBadge(loadEvents().length);
+  await refreshEventsList();
   bindFormSubmit();
 });
 
@@ -88,26 +87,22 @@ function bindFormSubmit() {
       return;
     }
 
-    // Save locally
-    const formData = {
-      name,
-      location: state.location,
-      decor:    state.decor,
-      food:     state.food,
-      extras:   [...state.extras],
-    };
+    // Save to Backend first for real ID
+    const apiRes = await postEventToAPI(formData);
 
-    createEvent(formData);
-
-    // Also try to sync with Django backend (non-blocking)
-    postEventToAPI(formData);
+    if (apiRes && apiRes.success) {
+      const events = loadEvents();
+      events.unshift(apiRes.event);
+      saveEvents(events);
+    } else {
+      createEvent(formData); // Fallback to local
+    }
 
     // Reset state
     resetForm();
 
     showAlert(`Event "${name}" saved successfully!`, 'success');
-    refreshEventsList();
-    updateBadge(loadEvents().length);
+    await refreshEventsList();
 
     setTimeout(() => showTab('events'), 900);
   });
@@ -121,9 +116,9 @@ function bindFormSubmit() {
 /* ── Reset form ──────────────────────────────────────────── */
 function resetForm() {
   state.location = null;
-  state.decor    = null;
-  state.food     = null;
-  state.extras   = new Set();
+  state.decor = null;
+  state.food = null;
+  state.extras = new Set();
 
   document.getElementById('eventName').value = '';
 
@@ -136,12 +131,27 @@ function resetForm() {
 }
 
 /* ── Refresh events list ─────────────────────────────────── */
-function refreshEventsList() {
-  const events = loadEvents();
+async function refreshEventsList() {
+  let events = [];
+  if (API_BASE) {
+    const apiEvents = await fetchEventsFromAPI();
+    if (apiEvents) {
+      events = apiEvents;
+      saveEvents(events); // Sync cache with DB
+    } else {
+      events = loadEvents(); // Fallback to cache offline
+    }
+  } else {
+    events = loadEvents();
+  }
+
+  updateBadge(events.length);
+
   renderEventsList(events, async id => {
+    if (API_BASE) {
+      await deleteEventFromAPI(id);
+    }
     deleteEvent(id);
-    deleteEventFromAPI(id);   // non-blocking backend sync
     refreshEventsList();
-    updateBadge(loadEvents().length);
   });
 }

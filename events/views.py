@@ -97,12 +97,11 @@ def create_event(request):
             'id': event.id,
             'name': event.name,
             'location': event.location,
-            'decoration': event.decoration,
+            'decor': event.decoration,
             'food': event.food,
             'extras': event.extras_list(),
-            'total_cost': int(event.total_cost),
-            'formatted_cost': event.formatted_cost(),
-            'created_at': event.created_at.strftime('%d %b %Y'),
+            'total': int(event.total_cost),
+            'date': event.created_at.strftime('%d %b %Y'),
         }
     }, status=201)
 
@@ -127,12 +126,11 @@ def event_list_api(request):
             'id': e.id,
             'name': e.name,
             'location': e.location,
-            'decoration': e.decoration,
+            'decor': e.decoration,
             'food': e.food,
             'extras': e.extras_list(),
-            'total_cost': int(e.total_cost),
-            'formatted_cost': e.formatted_cost(),
-            'created_at': e.created_at.strftime('%d %b %Y'),
+            'total': int(e.total_cost),
+            'date': e.created_at.strftime('%d %b %Y'),
         }
         for e in events
     ]

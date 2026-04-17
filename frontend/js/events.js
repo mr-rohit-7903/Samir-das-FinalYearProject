@@ -128,3 +128,23 @@ async function deleteEventFromAPI(id) {
     return false;
   }
 }
+
+/**
+ * FETCH all events from Django backend.
+ * Falls back silently if unavailable.
+ * Uses API_BASE from config.js.
+ *
+ * @returns {Promise<Array|null>}
+ */
+async function fetchEventsFromAPI() {
+  if (!API_BASE) return null;
+
+  try {
+    const response = await fetch(`${API_BASE}/api/events/`);
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.events;
+  } catch {
+    return null;
+  }
+}
