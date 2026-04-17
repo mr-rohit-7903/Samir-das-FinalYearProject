@@ -7,4 +7,4 @@
        Example: 'https://yourusername.pythonanywhere.com'
    ═══════════════════════════════════════════ */
 
-const API_BASE = '';   // ← Set your backend URL here (leave empty for local dev)
+const API_BASE = 'https://rohitbej.pythonanywhere.com';   // ← Set your backend URL here (leave empty for local dev)
