@@ -1,8 +1,7 @@
 import json
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib import messages
 from .models import Event
 
 # Cost lookup (mirrors frontend constants)
@@ -37,54 +36,16 @@ COSTS = {
 }
 
 
-LOCATIONS = [
-    ('Outdoor Garden Venue', 45000), ('Luxury Hotel Ballroom', 120000),
-    ('Beachside Pavilion', 75000), ('Rooftop Terrace', 60000),
-    ('Heritage Haveli', 95000), ('Community Hall', 18000),
-]
-DECORATIONS = [
-    ('Floral Fantasy', 35000), ('Fairy Lights & Drapes', 22000),
-    ('Royal Gold & Red', 55000), ('Minimalist Modern', 18000), ('Boho & Rustic', 28000),
-]
-FOOD_OPTIONS = [
-    ('Veg Buffet (100 pax)', 40000), ('Non-Veg Buffet (100 pax)', 60000),
-    ('Multi-Cuisine (100 pax)', 85000), ('Dessert & Snacks Bar', 20000), ('Live Food Stations', 35000),
-]
-EXTRAS_OPTIONS = [
-    ('Professional DJ', 25000), ('Photography (8hr)', 40000), ('Videography', 30000),
-    ('Event Coordinator', 15000), ('Floral Car Decoration', 8000),
-    ('Photo Booth', 12000), ('Live Music Band', 55000),
-]
-
-
-def index(request):
-    """Main page: show create form + all saved events."""
-    events = Event.objects.all()
-    context = {
-        'events': events,
-        'costs_json': json.dumps(COSTS),
-        'locations': LOCATIONS,
-        'decorations': DECORATIONS,
-        'food_options': FOOD_OPTIONS,
-        'extras': EXTRAS_OPTIONS,
-    }
-    return render(request, 'events/index.html', context)
-
-
 @csrf_exempt
 def create_event(request):
-    """Handle POST from the frontend form (both AJAX JSON and regular form)."""
+    """Handle POST JSON from the frontend. Returns JSON response."""
     if request.method != 'POST':
-        return redirect('index')
+        return JsonResponse({'success': False, 'error': 'Only POST allowed'}, status=405)
 
-    # Support both JSON (fetch API) and multipart form submissions
-    if request.content_type and 'application/json' in request.content_type:
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
-    else:
-        data = request.POST
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
 
     name = data.get('name', '').strip()
     location = data.get('location', '').strip()
@@ -111,11 +72,7 @@ def create_event(request):
         errors.append('Please select a food option.')
 
     if errors:
-        if request.content_type and 'application/json' in request.content_type:
-            return JsonResponse({'success': False, 'errors': errors}, status=400)
-        for e in errors:
-            messages.error(request, e)
-        return redirect('index')
+        return JsonResponse({'success': False, 'errors': errors}, status=400)
 
     # --- Compute total cost server-side ---
     total = 0
@@ -134,40 +91,30 @@ def create_event(request):
         total_cost=total,
     )
 
-    if request.content_type and 'application/json' in request.content_type:
-        return JsonResponse({
-            'success': True,
-            'event': {
-                'id': event.id,
-                'name': event.name,
-                'location': event.location,
-                'decoration': event.decoration,
-                'food': event.food,
-                'extras': event.extras_list(),
-                'total_cost': int(event.total_cost),
-                'formatted_cost': event.formatted_cost(),
-                'created_at': event.created_at.strftime('%d %b %Y'),
-            }
-        }, status=201)
-
-    messages.success(request, f'Event "{name}" saved successfully!')
-    return redirect('index')
+    return JsonResponse({
+        'success': True,
+        'event': {
+            'id': event.id,
+            'name': event.name,
+            'location': event.location,
+            'decoration': event.decoration,
+            'food': event.food,
+            'extras': event.extras_list(),
+            'total_cost': int(event.total_cost),
+            'formatted_cost': event.formatted_cost(),
+            'created_at': event.created_at.strftime('%d %b %Y'),
+        }
+    }, status=201)
 
 
 @csrf_exempt
 def delete_event(request, pk):
-    """Delete an event by ID."""
+    """Delete an event by ID. Returns JSON response."""
     event = get_object_or_404(Event, pk=pk)
 
     if request.method in ('POST', 'DELETE'):
-        event_name = event.name
         event.delete()
-
-        if request.content_type and 'application/json' in request.content_type:
-            return JsonResponse({'success': True, 'deleted_id': pk})
-
-        messages.success(request, f'Event "{event_name}" deleted.')
-        return redirect('index')
+        return JsonResponse({'success': True, 'deleted_id': pk})
 
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 

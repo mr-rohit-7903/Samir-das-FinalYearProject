@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Event Organizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- ── Header ── -->
+    <header>
+      <div class="logo">
+        <div class="logo-icon">🎊</div>
+        <h1>Event Organizer</h1>
+      </div>
+      <p class="tagline">Design your perfect event — every detail, every cost, crystal clear.</p>
+    </header>
+
+    <!-- ── Alert Banner ── -->
+    <div id="js-alert" class="alert" role="alert" aria-live="polite"></div>
+
+    <!-- ── Tabs ── -->
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" id="tab-create-btn" role="tab" aria-selected="true" aria-controls="tab-create"
+        onclick="showTab('create')">
+        Create Event
+      </button>
+      <button class="tab-btn" id="tab-events-btn" role="tab" aria-selected="false" aria-controls="tab-events"
+        onclick="showTab('events')">
+        My Events <span class="badge" id="count-badge">0</span>
+      </button>
+    </div>
+
+    <!-- ══════════ CREATE TAB ══════════ -->
+    <section id="tab-create" role="tabpanel" aria-labelledby="tab-create-btn">
+
+      <form id="eventForm" novalidate>
+
+        <!-- Event Name -->
+        <div class="form-card">
+          <p class="section-label">Event Details</p>
+          <div class="form-group">
+            <label for="eventName">Event Name <span class="required">*</span></label>
+            <input type="text" id="eventName" name="name" placeholder="e.g. Sarah & Tom's Wedding Reception"
+              autocomplete="off">
+          </div>
+        </div>
+
+        <!-- Location -->
+        <div class="form-card">
+          <p class="section-label">Location</p>
+          <div class="options-grid" id="locationGrid" role="radiogroup" aria-label="Choose a location"></div>
+        </div>
+
+        <!-- Decoration -->
+        <div class="form-card">
+          <p class="section-label">Decoration</p>
+          <div class="options-grid" id="decorGrid" role="radiogroup" aria-label="Choose a decoration style"></div>
+        </div>
+
+        <!-- Food -->
+        <div class="form-card">
+          <p class="section-label">Food &amp; Catering</p>
+          <div class="options-grid" id="foodGrid" role="radiogroup" aria-label="Choose a catering option"></div>
+        </div>
+
+        <!-- Extras -->
+        <div class="form-card">
+          <p class="section-label">
+            Additional Services
+            <span class="section-hint">(choose any)</span>
+          </p>
+          <div class="options-grid" id="extrasGrid" role="group" aria-label="Select additional services"></div>
+        </div>
+
+        <!-- Cost Bar -->
+        <div class="cost-bar" aria-live="polite">
+          <div>
+            <div class="cost-label">Total Estimate</div>
+            <div class="cost-amount" id="totalDisplay">₹0</div>
+          </div>
+          <div class="cost-breakdown" id="costBreakdown"></div>
+        </div>
+
+        <button type="submit" class="submit-btn">✦ Confirm &amp; Save Event</button>
+
+      </form>
+    </section>
+
+    <!-- ══════════ EVENTS TAB ══════════ -->
+    <section id="tab-events" role="tabpanel" aria-labelledby="tab-events-btn" hidden>
+      <div id="eventsList"></div>
+    </section>
+
+  </div><!-- /container -->
+
+  <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/events.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>
