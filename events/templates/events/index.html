@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Event Organizer</title>
+  {% load static %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --gold:#C9A84C;--gold-light:#F0D98A;--dark:#1A1208;--surface:#FEFCF5;
+      --card:#FFFEF9;--text:#2C2010;--muted:#8A7A60;--border:#E8DFC8;
+      --green:#2D6A4F;--red:#8B2E2E;--green-bg:#EFF8F3;--red-bg:#FEF0F0;
+    }
+    body{font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text);min-height:100vh}
+    a{color:inherit;text-decoration:none}
+
+    /* ── Layout ── */
+    .container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem}
+    header{text-align:center;padding:3rem 0 2.5rem;border-bottom:1px solid var(--border);margin-bottom:2rem}
+    header::before{content:'';display:block;width:80px;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto 2rem}
+    .logo{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:0.75rem}
+    .logo-icon{width:52px;height:52px;background:var(--gold);border-radius:14px;display:grid;place-items:center;font-size:1.5rem}
+    h1{font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:700;color:var(--dark)}
+    .tagline{color:var(--muted);font-size:1rem;font-weight:300;margin-top:0.4rem}
+
+    /* ── Tabs ── */
+    .tabs{display:flex;gap:0;background:var(--border);border-radius:14px;padding:4px;width:fit-content;margin:0 auto 2.5rem}
+    .tab-btn{padding:0.65rem 2rem;border-radius:10px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:500;cursor:pointer;color:var(--muted);transition:all .2s}
+    .tab-btn.active{background:#fff;color:var(--dark);box-shadow:0 1px 4px rgba(0,0,0,0.12)}
+
+    /* ── Messages ── */
+    .messages{margin-bottom:1.5rem}
+    .msg{padding:.75rem 1rem;border-radius:10px;font-size:.88rem;margin-bottom:.5rem}
+    .msg.success{background:var(--green-bg);border:1px solid #9fd3b8;color:var(--green)}
+    .msg.error{background:var(--red-bg);border:1px solid #f5c4c4;color:var(--red)}
+
+    /* ── Form ── */
+    .form-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2rem;margin-bottom:1.5rem}
+    .section-label{font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+    .form-group{margin-bottom:1.5rem}
+    .form-group label{display:block;font-size:.88rem;font-weight:500;margin-bottom:.5rem}
+    .form-group input{width:100%;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.95rem;background:var(--surface);color:var(--text);outline:none;transition:border-color .2s}
+    .form-group input:focus{border-color:var(--gold)}
+    .options-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.75rem}
+    .option-card{border:1.5px solid var(--border);border-radius:12px;padding:1rem;cursor:pointer;transition:all .18s;background:var(--surface);position:relative;user-select:none}
+    .option-card:hover{border-color:var(--gold-light);background:#FFFDF0}
+    .option-card.selected{border-color:var(--gold);background:#FFFBF0;box-shadow:0 0 0 3px rgba(201,168,76,.15)}
+    .check-ring{position:absolute;top:10px;right:10px;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border);display:grid;place-items:center;transition:all .18s;font-size:11px;font-weight:600;color:transparent}
+    .option-card.selected .check-ring{background:var(--gold);border-color:var(--gold);color:#fff}
+    .option-emoji{font-size:1.5rem;margin-bottom:8px}
+    .option-name{font-weight:500;font-size:.88rem;margin-bottom:4px}
+    .option-cost{font-size:.78rem;color:var(--muted)}
+
+    /* ── Cost sticky bar ── */
+    .cost-bar{background:linear-gradient(135deg,var(--dark) 0%,#3d2a0a 100%);border-radius:16px;padding:1.5rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;position:sticky;bottom:1rem;z-index:100}
+    .cost-total-label{color:rgba(255,255,255,.6);font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em}
+    .cost-total-val{font-family:'Playfair Display',serif;font-size:2.1rem;font-weight:700;color:var(--gold-light)}
+    .cost-breakdown{display:flex;gap:1.5rem;flex-wrap:wrap}
+    .cost-item{font-size:.78rem;color:rgba(255,255,255,.5)}
+    .cost-item strong{color:rgba(255,255,255,.85);font-weight:500}
+    .submit-btn{width:100%;padding:1rem;background:var(--gold);border:none;border-radius:12px;font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;letter-spacing:.3px}
+    .submit-btn:hover{background:#b8903a;transform:translateY(-1px);box-shadow:0 4px 16px rgba(201,168,76,.35)}
+
+    /* ── Event cards ── */
+    .events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem}
+    .event-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:1.5rem;transition:transform .18s,box-shadow .18s}
+    .event-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.07)}
+    .ec-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem}
+    .ec-name{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:600;color:var(--dark);line-height:1.3}
+    .ec-date{background:#fff8e6;border:1px solid var(--border);border-radius:20px;padding:3px 11px;font-size:.75rem;font-weight:600;color:#8a6a1a;white-space:nowrap}
+    .ec-details{display:grid;gap:6px;margin-bottom:1rem}
+    .ec-row{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--muted)}
+    .ec-icon{width:22px;height:22px;border-radius:6px;background:var(--border);display:grid;place-items:center;font-size:.7rem;flex-shrink:0}
+    .ec-total{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--gold);margin-bottom:1rem}
+    .delete-form{display:inline}
+    .delete-btn{width:100%;padding:.6rem;border:1.5px solid #f5c4c4;border-radius:9px;background:none;color:var(--red);font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:500;cursor:pointer;transition:all .18s}
+    .delete-btn:hover{background:var(--red-bg)}
+    .empty{text-align:center;padding:4rem 2rem;color:var(--muted)}
+    .empty-icon{font-size:3rem;margin-bottom:1rem;opacity:.4}
+
+    /* ── Responsive ── */
+    @media(max-width:600px){
+      h1{font-size:1.8rem}
+      .cost-bar{flex-direction:column;align-items:flex-start}
+      .tabs{width:100%}
+      .tab-btn{flex:1;text-align:center}
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🎊</div>
+      <h1>Event Organizer</h1>
+    </div>
+    <p class="tagline">Design your perfect event — every detail, every cost, crystal clear.</p>
+  </header>
+
+  <!-- ── Messages ── -->
+  {% if messages %}
+  <div class="messages">
+    {% for message in messages %}
+    <div class="msg {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ── Tabs ── -->
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-create-btn" onclick="showTab('create')">Create Event</button>
+    <button class="tab-btn" id="tab-events-btn" onclick="showTab('events')">
+      My Events <span style="background:var(--gold);color:#fff;border-radius:20px;padding:1px 8px;font-size:.75rem;margin-left:4px">{{ events|length }}</span>
+    </button>
+  </div>
+
+  <!-- ══════════════ CREATE TAB ══════════════ -->
+  <div id="tab-create">
+    <div id="js-alert" style="display:none;padding:.75rem 1rem;border-radius:10px;font-size:.88rem;margin-bottom:1rem"></div>
+
+    <form id="eventForm" method="POST" action="{% url 'create_event' %}">
+      {% csrf_token %}
+
+      <!-- Event Name -->
+      <div class="form-card">
+        <div class="section-label">Event Details</div>
+        <div class="form-group">
+          <label for="eventName">Event Name *</label>
+          <input type="text" id="eventName" name="name" placeholder="e.g. Sarah & Tom's Wedding Reception" required>
+        </div>
+      </div>
+
+      <!-- Location -->
+      <div class="form-card">
+        <div class="section-label">Location</div>
+        <input type="hidden" id="locInput" name="location">
+        <div class="options-grid">
+          {% for name, cost in locations %}
+          <div class="option-card" onclick="selectSingle('loc','{{ name }}')">
+            <div class="check-ring">✓</div>
+            <div class="option-emoji">{{ name|slice:":2" }}</div>
+            <div class="option-name">{{ name }}</div>
+            <div class="option-cost">₹{{ cost|floatformat:0 }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Decoration -->
+      <div class="form-card">
+        <div class="section-label">Decoration</div>
+        <input type="hidden" id="decorInput" name="decoration">
+        <div class="options-grid">
+          {% for name, cost in decorations %}
+          <div class="option-card" onclick="selectSingle('decor','{{ name }}')">
+            <div class="check-ring">✓</div>
+            <div class="option-name">{{ name }}</div>
+            <div class="option-cost">₹{{ cost|floatformat:0 }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Food -->
+      <div class="form-card">
+        <div class="section-label">Food & Catering</div>
+        <input type="hidden" id="foodInput" name="food">
+        <div class="options-grid">
+          {% for name, cost in food_options %}
+          <div class="option-card" onclick="selectSingle('food','{{ name }}')">
+            <div class="check-ring">✓</div>
+            <div class="option-name">{{ name }}</div>
+            <div class="option-cost">₹{{ cost|floatformat:0 }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Extras -->
+      <div class="form-card">
+        <div class="section-label">Additional Services <small style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(choose any)</small></div>
+        <input type="hidden" id="extrasInput" name="extras">
+        <div class="options-grid">
+          {% for name, cost in extras %}
+          <div class="option-card" onclick="toggleExtra('{{ name }}')">
+            <div class="check-ring">✓</div>
+            <div class="option-name">{{ name }}</div>
+            <div class="option-cost">₹{{ cost|floatformat:0 }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Cost bar -->
+      <div class="cost-bar">
+        <div>
+          <div class="cost-total-label">Total Estimate</div>
+          <div class="cost-total-val" id="totalDisplay">₹0</div>
+        </div>
+        <div class="cost-breakdown" id="costBreakdown"></div>
+      </div>
+
+      <button type="submit" class="submit-btn">✦ Confirm & Save Event</button>
+    </form>
+  </div>
+
+  <!-- ══════════════ EVENTS TAB ══════════════ -->
+  <div id="tab-events" style="display:none">
+    {% if events %}
+    <div class="events-grid">
+      {% for event in events %}
+      <div class="event-card">
+        <div class="ec-header">
+          <div class="ec-name">{{ event.name }}</div>
+          <div class="ec-date">{{ event.created_at|date:"d M Y" }}</div>
+        </div>
+        <div class="ec-details">
+          <div class="ec-row"><div class="ec-icon">📍</div>{{ event.location }}</div>
+          <div class="ec-row"><div class="ec-icon">🎀</div>{{ event.decoration }}</div>
+          <div class="ec-row"><div class="ec-icon">🍽</div>{{ event.food }}</div>
+          {% if event.extras %}
+          <div class="ec-row"><div class="ec-icon">✚</div>{{ event.extras }}</div>
+          {% endif %}
+        </div>
+        <div class="ec-total">{{ event.formatted_cost }}</div>
+        <form class="delete-form" method="POST" action="{% url 'delete_event' event.pk %}" onsubmit="return confirm('Delete this event?')">
+          {% csrf_token %}
+          <button type="submit" class="delete-btn">Remove Event</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">🎊</div>
+      <p>No events yet. Create your first one!</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div><!-- /container -->
+
+<script>
+const COSTS = {{ costs_json|safe }};
+const state = { loc: null, decor: null, food: null, extras: new Set() };
+const singleMap = { loc: 'locInput', decor: 'decorInput', food: 'foodInput' };
+const singleGroups = {
+  loc: document.querySelectorAll('#tab-create .form-card:nth-of-type(2) .option-card'),
+  decor: document.querySelectorAll('#tab-create .form-card:nth-of-type(3) .option-card'),
+  food: document.querySelectorAll('#tab-create .form-card:nth-of-type(4) .option-card'),
+};
+const extraCards = document.querySelectorAll('#tab-create .form-card:nth-of-type(5) .option-card');
+
+function selectSingle(group, name) {
+  state[group] = name;
+  document.getElementById(singleMap[group]).value = name;
+  singleGroups[group].forEach(c => {
+    const match = c.querySelector('.option-name').textContent === name;
+    c.classList.toggle('selected', match);
+  });
+  calcTotal();
+}
+
+function toggleExtra(name) {
+  if (state.extras.has(name)) state.extras.delete(name);
+  else state.extras.add(name);
+  document.getElementById('extrasInput').value = [...state.extras].join(',');
+  extraCards.forEach(c => {
+    if (c.querySelector('.option-name').textContent === name)
+      c.classList.toggle('selected', state.extras.has(name));
+  });
+  calcTotal();
+}
+
+function calcTotal() {
+  let total = 0;
+  const parts = [];
+  if (state.loc) { total += COSTS[state.loc]||0; parts.push({l:'Location', v:COSTS[state.loc]||0}); }
+  if (state.decor) { total += COSTS[state.decor]||0; parts.push({l:'Decor', v:COSTS[state.decor]||0}); }
+  if (state.food) { total += COSTS[state.food]||0; parts.push({l:'Food', v:COSTS[state.food]||0}); }
+  let extCost = 0;
+  state.extras.forEach(e => extCost += COSTS[e]||0);
+  if (extCost) { total += extCost; parts.push({l:'Extras', v:extCost}); }
+  document.getElementById('totalDisplay').textContent = '₹' + total.toLocaleString('en-IN');
+  document.getElementById('costBreakdown').innerHTML = parts.map(p =>
+    `<div class="cost-item">${p.l}: <strong>₹${p.v.toLocaleString('en-IN')}</strong></div>`).join('');
+}
+
+function showTab(t) {
+  document.getElementById('tab-create').style.display = t === 'create' ? 'block' : 'none';
+  document.getElementById('tab-events').style.display = t === 'events' ? 'block' : 'none';
+  document.getElementById('tab-create-btn').classList.toggle('active', t === 'create');
+  document.getElementById('tab-events-btn').classList.toggle('active', t === 'events');
+}
+
+// Client-side validation before submit
+document.getElementById('eventForm').addEventListener('submit', function(e) {
+  const name = document.getElementById('eventName').value.trim();
+  const loc = document.getElementById('locInput').value;
+  const dec = document.getElementById('decorInput').value;
+  const food = document.getElementById('foodInput').value;
+  const alert = document.getElementById('js-alert');
+  if (!name || !loc || !dec || !food) {
+    e.preventDefault();
+    alert.textContent = 'Please fill in all required fields (name, location, decoration, food).';
+    alert.style.display = 'block';
+    alert.style.background = '#FEF0F0';
+    alert.style.border = '1px solid #F5C4C4';
+    alert.style.color = '#8B2E2E';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+});
+</script>
+</body>
+</html>
