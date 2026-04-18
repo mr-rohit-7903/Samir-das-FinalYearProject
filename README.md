@@ -1,164 +1,55 @@
-# Smart Event Organizer System
+# Smart Event Organizer
 
-A full-stack event management application with a **static frontend** (HTML/CSS/JS) and a **Django REST API backend**.
+**Samir Das**  
+**Arka Jain University, Gamhariya**
 
-- **Frontend** → Hosted on **GitHub Pages**
-- **Backend API** → Hosted on **PythonAnywhere**
+## About The Project
 
----
+Smart Event Organizer is a full-stack event management application designed to help users efficiently manage, customize, and calculate costs for various events. This project was developed as a final year college project by **Samir Das** at **Arka Jain University, Gamhariya**.
 
-## Project Structure
+## Tech Stack
 
-```
-smart_event_organizer/
-├── frontend/                    ← Static frontend (GitHub Pages)
-│   ├── index.html
-│   ├── css/style.css
-│   └── js/
-│       ├── config.js            ← ⚠️ Set your backend URL here
-│       ├── data.js
-│       ├── ui.js
-│       ├── calculator.js
-│       ├── events.js
-│       └── app.js
-├── events/                      ← Django app (API only)
-│   ├── models.py
-│   ├── views.py
-│   ├── urls.py
-│   └── admin.py
-├── smart_event_organizer/       ← Django project config
-│   ├── settings.py
-│   ├── urls.py
-│   └── wsgi.py
-├── manage.py
-├── requirements.txt
-└── README.md
-```
+The application uses a modern, separated frontend and backend architecture:
+
+### Frontend
+- **HTML/CSS/JS**: Built with vanilla web technologies.
+- **LocalStorage**: Includes offline operation capabilities.
+- **Responsive Design**: Adapts natively to mobile, tablet, and desktop devices.
+
+### Backend
+- **Python**: The core programming language.
+- **Django & Django REST Framework**: Handles API development, backend logic, and business rules.
+- **SQLite**: Database management handled via Django ORM.
+
+## Deployment
+
+The application is deployed securely and efficiently across two separate services:
+- **Frontend**: Hosted on **GitHub Pages** for fast, edge-cached static file delivery.
+- **Backend API**: Hosted on **PythonAnywhere**, providing a cloud-based Python environment for the Django REST API.
 
 ---
 
-## Features
+## Architecture & Functionality
 
-| Feature | Details |
-|---|---|
-| Create Event | Custom name + select location, decoration, food, extras |
-| Real-time Cost | JS calculates total instantly as you select options |
-| Save to DB | POST to Django API → stored in SQLite via ORM |
-| Offline Mode | Works without backend using localStorage |
-| View Events | Card-based list of all saved events |
-| Delete Events | One-click delete with confirmation |
-| Admin Panel | Full CRUD at /admin/ with filters and search |
-| JSON API | GET /api/events/ returns all events as JSON |
-| Responsive | Works on mobile, tablet, desktop |
+### API Endpoints (Django/Python)
+The backend serves a lightweight JSON REST API designed for the frontend to securely interact with the database:
 
----
+- `POST /events/create/`: Receives raw JSON payloads (containing event name, location, decor, food, and extras). The server validates the selections, computes the final total cost securely (to avoid client-side tampering), saves it to the SQLite database, and returns the event object.
+- `POST /events/delete/<id>/`: Handles deletions for specific logged events.
+- `GET /api/events/`: Fetches the entire directory of logged events currently stored in the DB, returning a structured JSON list.
+- `GET /admin/`: Django’s built-in administration panel for superusers to manage entries manually.
 
-## 🚀 Deployment Guide
+### Frontend Logic (JavaScript)
+The frontend uses vanilla JavaScript distributed across modular architectural files:
 
-### Part 1: Deploy Backend on PythonAnywhere
-
-#### Step 1 — Create an Account
-1. Go to [pythonanywhere.com](https://www.pythonanywhere.com/) and sign up for a **free account**
-2. Note your username (e.g., `samir123`) — your site will be at `samir123.pythonanywhere.com`
-
-#### Step 2 — Upload the Code
-1. Open a **Bash console** from the PythonAnywhere dashboard
-2. Clone your repository:
-   ```bash
-   git clone https://github.com/mr-rohit-7903/Samir-das-FinalYearProject.git
-   ```
-
-#### Step 3 — Set Up Virtual Environment
-```bash
-cd Samir-das-FinalYearProject
-mkvirtualenv --python=/usr/bin/python3.10 eventenv
-pip install -r requirements.txt
-```
-
-#### Step 4 — Initialize the Database
-```bash
-python manage.py migrate
-python manage.py createsuperuser
-```
-Follow the prompts to set admin username and password.
-
-#### Step 5 — Configure the Web App
-1. Go to the **Web** tab on PythonAnywhere dashboard
-2. Click **"Add a new web app"**
-3. Choose **Manual configuration** → **Python 3.10**
-4. Set the following:
-
-| Setting | Value |
-|---|---|
-| **Source code** | `/home/yourusername/Samir-das-FinalYearProject` |
-| **Virtualenv** | `/home/yourusername/.virtualenvs/eventenv` |
-
-5. Click on the **WSGI configuration file** link and **replace its entire contents** with:
-
-```python
-import os
-import sys
-
-path = '/home/yourusername/Samir-das-FinalYearProject'
-if path not in sys.path:
-    sys.path.append(path)
-
-os.environ['DJANGO_SETTINGS_MODULE'] = 'smart_event_organizer.settings'
-
-from django.core.wsgi import get_wsgi_application
-application = get_wsgi_application()
-```
-
-> ⚠️ Replace `yourusername` with your actual PythonAnywhere username in both the path and virtualenv settings.
-
-#### Step 6 — Update `ALLOWED_HOSTS` (if needed)
-The `settings.py` already has `ALLOWED_HOSTS = ['*']`, so this should work out of the box. For production, you can restrict it:
-```python
-ALLOWED_HOSTS = ['yourusername.pythonanywhere.com']
-```
-
-#### Step 7 — Reload & Test
-1. Go back to the **Web** tab
-2. Click the green **"Reload"** button
-3. Visit `https://yourusername.pythonanywhere.com/api/events/` — you should see `{"events": []}`
-4. Visit `https://yourusername.pythonanywhere.com/admin/` — log in with your superuser credentials
-
-✅ **Backend is live!**
+- **`app.js`**: Functions as the main application controller. It wires together the UI event listeners, option grids, and form submissions. It orchestrates pushing the data to the backend API and toggling local caching.
+- **`calculator.js`**: Contains the logic to instantaneously calculate real-time cost estimations on the client side whenever a user clicks an option. It computes and breaks down pricing dynamically without needing to hit the server for every click.
+- **`events.js`**: Manages data persistence. It houses the network requests to the Django backend. It securely catches failed internet connections and silently falls back to `localStorage` (Offline Mode).
+- **`data.js` & `ui.js`**: `data.js` holds the constant pricing matrices and predefined options for HTML generation. `ui.js` handles the DOM manipulation, populating drop-downs, updating selection cards, and rendering the event list dynamically.
 
 ---
 
-### Part 2: Deploy Frontend on GitHub Pages
-
-#### Step 1 — Set the Backend URL
-Open `frontend/js/config.js` and set your PythonAnywhere URL:
-
-```javascript
-const API_BASE = 'https://yourusername.pythonanywhere.com';
-```
-
-> ⚠️ **No trailing slash!** Use `https://yourusername.pythonanywhere.com` not `https://yourusername.pythonanywhere.com/`
-
-#### Step 2 — Push Changes to GitHub
-```bash
-git add .
-git commit -m "Set backend URL for deployment"
-git push
-```
-
-#### Step 3 — Enable GitHub Pages
-1. Go to your repository on GitHub: `https://github.com/mr-rohit-7903/Samir-das-FinalYearProject`
-2. Click **Settings** → **Pages** (in the left sidebar)
-3. Under **Source**, select **Deploy from a branch**
-4. Select branch: **main**, folder: **/frontend**
-5. Click **Save**
-
-#### Step 4 — Access Your Site
-After a minute or two, your frontend will be live at:
-```
-https://mr-rohit-7903.github.io/Samir-das-FinalYearProject/
-```
-
-✅ **Frontend is live!**
+> For full setup, local development, and deployment instructions, please see the [**instructions.md**](instructions.md) file.
 
 ---
 
@@ -194,42 +85,3 @@ https://mr-rohit-7903.github.io/Samir-das-FinalYearProject/
 - Floral Car Decoration — ₹8,000
 - Photo Booth — ₹12,000
 - Live Music Band — ₹55,000
-
-## API Endpoints
-
-| Method | URL | Action |
-|---|---|---|
-| POST | /events/create/ | Create new event (JSON body) |
-| POST | /events/delete/\<id\>/ | Delete event |
-| GET | /api/events/ | JSON list of all events |
-| GET | /admin/ | Django admin panel |
-
----
-
-## Local Development
-
-### Backend
-```bash
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver
-```
-Backend runs at `http://127.0.0.1:8000/`
-
-### Frontend
-Open `frontend/index.html` directly in a browser, or use VS Code Live Server.
-
-> **Tip:** For local dev with API sync, set `API_BASE = 'http://127.0.0.1:8000'` in `config.js`.
-
----
-
-## Troubleshooting
-
-| Problem | Solution |
-|---|---|
-| CORS errors in browser console | Make sure your GitHub Pages URL is in `CORS_ALLOWED_ORIGINS` in `settings.py` |
-| API returns 404 | Check PythonAnywhere WSGI config and reload the web app |
-| Events not syncing to backend | Check `config.js` has the correct `API_BASE` URL (no trailing slash) |
-| Frontend works but no backend | The app works offline with localStorage — backend sync is optional |
